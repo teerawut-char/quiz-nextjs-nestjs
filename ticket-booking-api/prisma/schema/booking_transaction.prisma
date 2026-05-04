@@ -1,0 +1,10 @@
+model Booking_Transaction {
+  id        String   @id @default(uuid())
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  bookingId Int
+  amount    Float
+  status    String   @default("PENDING") // PENDING, SUCCESS, FAILED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}

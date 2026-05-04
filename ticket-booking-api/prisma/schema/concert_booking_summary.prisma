@@ -1,0 +1,9 @@
+model Concert_Booking_Summary {
+  id            Int      @id @default(autoincrement())
+  concert       Concert  @relation(fields: [concertId], references: [id])
+  concertId     Int      @unique
+  totalBookings Int      @default(0)
+  totalSeats    Int      @default(0)
+  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now())
+}

@@ -1,0 +1,64 @@
+services:
+  # Database Infrastructure
+  postgres:
+    image: postgres:15-alpine
+    container_name: ticket-booking-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: p@ssword
+      POSTGRES_DB: ticket_booking_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ticket-booking-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ticket-booking-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ticket-booking-network
+
+  # Backend API (NestJS)
+  api:
+    build:
+      context: ./ticket-booking-api
+      dockerfile: Dockerfile
+    container_name: ticket-booking-api
+    restart: always
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ticket-booking-network
+
+  # Frontend (Next.js)
+  frontend:
+    build:
+      context: ./ticket-booking-frontend
+      dockerfile: Dockerfile
+    container_name: ticket-booking-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    networks:
+      - ticket-booking-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  ticket-booking-network:
+    driver: bridge

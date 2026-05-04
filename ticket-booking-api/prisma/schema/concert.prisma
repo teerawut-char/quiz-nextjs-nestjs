@@ -1,0 +1,14 @@
+model Concert {
+  id             Int                      @id @default(autoincrement())
+  name           String
+  description    String
+  date           DateTime
+  price          Float
+  totalSeats     Int
+  reservedSeats  Int                      @default(0)
+  bookings       Booking[]
+  bookingSummary Concert_Booking_Summary?
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  deletedAt      DateTime?
+}
