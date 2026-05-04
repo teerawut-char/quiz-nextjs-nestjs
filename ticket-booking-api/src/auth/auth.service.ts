@@ -14,17 +14,24 @@ export class AuthService {
   
 
     async registerUser(data: RegisterDto): Promise<ResponseAuthProfileDto> {
+        console.log('Registering user:', data.email)
         try {
             const { email, password, name } = data
             const existingUser = await this.prisma.client.user.findUnique({ where: { email } })
-            if (existingUser) throw new BadRequestException("User already exists")
+            if (existingUser) {
+                console.warn('User registration failed: User already exists', email)
+                throw new BadRequestException("User already exists")
+            }
 
             const hashedPassword = await bcrypt.hash(password, 10)
-            return await this.prisma.client.user.create({
+            const newUser = await this.prisma.client.user.create({
                 data: { email, password: hashedPassword, name },
                 select: { id: true, email: true, name: true },
             })
+            console.log('User registered successfully:', email)
+            return newUser
         } catch (error) {
+            console.error('Error in registerUser:', error)
             if (error instanceof BadRequestException) throw error
             throw new InternalServerErrorException("Failed to register user")
         }
@@ -52,17 +59,24 @@ export class AuthService {
 
 
     async registerAdmin(data: RegisterDto): Promise<ResponseAuthProfileDto> {
+        console.log('Registering admin:', data.email)
         try {
             const { email, password, name } = data
-            const existingAdmin = await this.prisma.client.admin.findUnique({ where: { email } })
-            if (existingAdmin) throw new BadRequestException("Admin already exists")
+            const existingUser = await this.prisma.client.user.findUnique({ where: { email } })
+            if (existingUser) {
+                console.warn('Admin registration failed: User already exists', email)
+                throw new BadRequestException("User already exists")
+            }
 
             const hashedPassword = await bcrypt.hash(password, 10)
-            return await this.prisma.client.admin.create({
-                data: { email, password: hashedPassword, name },
+            const newAdmin = await this.prisma.client.user.create({
+                data: { email, password: hashedPassword, name, role: 'ADMIN' },
                 select: { id: true, email: true, name: true },
             })
+            console.log('Admin registered successfully:', email)
+            return newAdmin
         } catch (error) {
+            console.error('Error in registerAdmin:', error)
             if (error instanceof BadRequestException) throw error
             throw new InternalServerErrorException("Failed to register admin")
         }
@@ -71,16 +85,16 @@ export class AuthService {
     async loginAdmin(data: LoginDto): Promise<ResponseLoginDto> {
         try {
             const { email, password } = data
-            const admin = await this.prisma.client.admin.findUnique({ where: { email } })
-            if (!admin) throw new UnauthorizedException("Invalid credentials")
+            const user = await this.prisma.client.user.findUnique({ where: { email } })
+            if (!user || user.role !== 'ADMIN') throw new UnauthorizedException("Invalid credentials")
 
-            const isPasswordValid = await bcrypt.compare(password, admin.password)
+            const isPasswordValid = await bcrypt.compare(password, user.password)
             if (!isPasswordValid) throw new UnauthorizedException("Invalid credentials")
 
-            const payload = { sub: admin.id, email: admin.email, role: "ADMIN" }
+            const payload = { sub: user.id, email: user.email, role: "ADMIN" }
             return {
                 accessToken: await this.jwtService.signAsync(payload),
-                user: { id: admin.id, email: admin.email, name: admin.name, role: "ADMIN" },
+                user: { id: user.id, email: user.email, name: user.name, role: "ADMIN" },
             }
         } catch (error) {
             if (error instanceof UnauthorizedException) throw error

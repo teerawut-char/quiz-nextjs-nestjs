@@ -1,7 +1,9 @@
+import "dotenv/config"
 import { NestFactory } from "@nestjs/core"
 import { ValidationPipe } from "@nestjs/common"
 import { AppModule } from "./app.module"
 import { TransformInterceptor } from "./common/interceptors/transform.interceptor"
+import { LoggerInterceptor } from "./common/interceptors/logger.interceptor"
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter"
 
 async function bootstrap() {
@@ -15,6 +17,7 @@ async function bootstrap() {
         }),
     )
 
+    app.useGlobalInterceptors(new LoggerInterceptor())
     app.useGlobalInterceptors(new TransformInterceptor())
     app.useGlobalFilters(new HttpExceptionFilter())
 

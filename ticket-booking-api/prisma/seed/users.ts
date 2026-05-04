@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 export async function seedUsers(prisma: PrismaClient) {
   console.log('Seeding users...');
@@ -16,10 +17,14 @@ export async function seedUsers(prisma: PrismaClient) {
   ];
 
   for (const user of users) {
+    const hashedPassword = await bcrypt.hash(user.password, 10);
     await prisma.user.upsert({
       where: { email: user.email },
       update: {},
-      create: user,
+      create: {
+        ...user,
+        password: hashedPassword,
+      },
     });
   }
 }

@@ -17,12 +17,13 @@ const Card: React.FC<CardProps> = ({ children, variant = 'white', className = ''
     padding: '1.5rem',
     border: isColored ? 'none' : '1px solid var(--border)',
     boxShadow: 'var(--card-shadow)',
+    width: '100%',
     ...style
   };
 
   // Re-adjusting color names to match my globals.css if necessary
-  if (variant === 'blue') baseStyle.backgroundColor = '#1e739f';
-  if (variant === 'green') baseStyle.backgroundColor = '#0e9f6e';
+  if (variant === 'blue') baseStyle.backgroundColor = '#0070a2';
+  if (variant === 'green') baseStyle.backgroundColor = '#00a389';
   if (variant === 'red') baseStyle.backgroundColor = '#f05252';
 
   return (

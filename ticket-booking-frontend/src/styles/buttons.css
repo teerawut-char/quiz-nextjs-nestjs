@@ -21,3 +21,14 @@
 .btn-solid-primary { background-color: var(--brand-blue); color: white; }
 .btn-solid-white { background-color: white; color: var(--brand-blue); border-color: var(--border); }
 .btn-solid-danger { background-color: var(--danger); color: white; }
+
+/* Responsive styles */
+.btn-responsive {
+  width: 160px; /* Default desktop width */
+}
+
+@media (max-width: 768px) {
+  .btn-responsive {
+    width: 100% !important;
+  }
+}

@@ -30,7 +30,7 @@ function LoginForm() {
                 setError(data.message || "Login failed")
             } else {
                 setSession(data.data.accessToken, data.data.user)
-                router.push("/dashboard")
+                router.push(`/dashboard/${role}`)
             }
         } catch (err) {
             setError("An unexpected error occurred. Please try again.")

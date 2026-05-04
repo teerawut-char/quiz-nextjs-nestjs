@@ -12,6 +12,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d ticket_booking_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - ticket-booking-network
 
@@ -23,6 +28,11 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - ticket-booking-network
 
@@ -33,11 +43,18 @@ services:
       dockerfile: Dockerfile
     container_name: ticket-booking-api
     restart: always
+    environment:
+      DATABASE_URL: postgresql://user:p@ssword@ticket-booking-postgres:5432/ticket_booking_db?schema=public
+      REDIS_URL: redis://ticket-booking-redis:6379
+      PORT: 3001
+      JWT_SECRET: super-secret-key-change-me-in-production
     ports:
       - "3001:3001"
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - ticket-booking-network
 
@@ -48,6 +65,8 @@ services:
       dockerfile: Dockerfile
     container_name: ticket-booking-frontend
     restart: always
+    environment:
+      API_URL: http://ticket-booking-api:3001
     ports:
       - "3000:3000"
     depends_on:

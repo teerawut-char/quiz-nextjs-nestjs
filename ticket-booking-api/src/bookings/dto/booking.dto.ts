@@ -1,4 +1,4 @@
-import { IsNumber, IsNotEmpty, Min } from 'class-validator';
+import { IsNumber, IsNotEmpty, Min, IsOptional } from 'class-validator';
 
 export class CreateBookingDto {
   @IsNumber()
@@ -18,6 +18,12 @@ export class BookingIdDto {
   @IsNumber()
   @IsNotEmpty()
   id: number;
+}
+
+export class GetBookingsDto {
+  @IsOptional()
+  @IsNumber()
+  userId?: number;
 }
 
 export class ResponseCreateBookingDto {

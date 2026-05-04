@@ -27,9 +27,10 @@ export class BookingsService {
         transactions: { select: { id: true, amount: true, status: true, createdAt: true } },
     };
 
-    async findAll(): Promise<ResponseBookingDetailDto[]> {
+    async findAll(userId?: number): Promise<ResponseBookingDetailDto[]> {
         try {
             return await this.prisma.client.booking.findMany({
+                where: userId ? { userId } : {},
                 select: this.bookingDetailSelect,
             });
         } catch (error) {
@@ -56,6 +57,18 @@ export class BookingsService {
         const redisKey = `concert_seats:${concertId}`;
 
         try {
+           
+            const existingBooking = await this.prisma.client.booking.findFirst({
+                where: {
+                    userId,
+                    concertId,
+                },
+            });
+
+            if (existingBooking && existingBooking.status === 'RESERVED') {
+                throw new BadRequestException('You already have an active reservation for this concert');
+            }
+
             const redisClient = this.redis.getClient();
             
             // Try to decrement seats in Redis first
@@ -99,14 +112,35 @@ export class BookingsService {
                         throw new BadRequestException('Not enough seats available');
                     }
 
-                    const booking = await tx.booking.create({
+                    let booking;
+                    if (existingBooking) {
+                        booking = await tx.booking.update({
+                            where: { id: existingBooking.id },
+                            data: {
+                                status: 'RESERVED',
+                                numSeats,
+                            },
+                            select: this.bookingSelect,
+                        });
+                    } else {
+                        booking = await tx.booking.create({
+                            data: {
+                                userId,
+                                concertId,
+                                numSeats,
+                                status: 'RESERVED',
+                            },
+                            select: this.bookingSelect,
+                        });
+                    }
+
+                    // Record Transaction
+                    await tx.booking_Transaction.create({
                         data: {
-                            userId,
-                            concertId,
-                            numSeats,
-                            status: 'RESERVED',
-                        },
-                        select: this.bookingSelect,
+                            bookingId: booking.id,
+                            amount: concert.price * numSeats,
+                            status: 'SUCCESS'
+                        }
                     });
 
                     await tx.concert.update({
@@ -136,12 +170,12 @@ export class BookingsService {
             return await this.prisma.client.$transaction(async (tx) => {
                 const booking = await tx.booking.findUnique({
                     where: { id },
+                    include: { concert: true },
                 });
 
                 if (!booking || booking.status === 'CANCELLED') {
                     throw new BadRequestException('Booking not found or already cancelled');
                 }
-
 
                 const updatedBooking = await tx.booking.update({
                     where: { id },
@@ -149,6 +183,14 @@ export class BookingsService {
                     select: this.bookingSelect,
                 });
 
+                // Record Cancellation Transaction
+                await tx.booking_Transaction.create({
+                    data: {
+                        bookingId: id,
+                        amount: -(booking.concert.price * booking.numSeats),
+                        status: 'CANCELLED'
+                    }
+                });
 
                 await tx.concert.update({
                     where: { id: booking.concertId },
@@ -168,6 +210,34 @@ export class BookingsService {
         } catch (error) {
             if (error instanceof BadRequestException) throw error;
             throw new InternalServerErrorException('Failed to cancel booking');
+        }
+    }
+    async findTransactions(userId: number) {
+        try {
+            return await this.prisma.client.booking_Transaction.findMany({
+                where: {
+                    booking: {
+                        userId: Number(userId),
+                    },
+                },
+                include: {
+                    booking: {
+                        include: {
+                            concert: {
+                                select: {
+                                    name: true,
+                                    date: true,
+                                },
+                            },
+                        },
+                    },
+                },
+                orderBy: {
+                    createdAt: 'desc',
+                },
+            });
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to fetch transaction history');
         }
     }
 }

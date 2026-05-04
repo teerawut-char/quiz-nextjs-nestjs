@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useEffect } from 'react';
+import { CheckCircle, XCircle, Info, X } from 'lucide-react';
 
 interface NotificationProps {
+  show: boolean;
   message: string;
   type?: 'success' | 'error' | 'info';
   onClose: () => void;
@@ -10,59 +12,71 @@ interface NotificationProps {
 }
 
 const Notification: React.FC<NotificationProps> = ({
+  show,
   message,
   type = 'success',
   onClose,
   duration = 3000
 }) => {
   useEffect(() => {
-    const timer = setTimeout(() => {
-      onClose();
-    }, duration);
-    return () => clearTimeout(timer);
-  }, [onClose, duration]);
+    if (show) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, duration);
+      return () => clearTimeout(timer);
+    }
+  }, [show, onClose, duration]);
 
-  const colors = {
-    success: { bg: '#def7ec', text: '#03543f', icon: 'fa-circle-check' },
-    error: { bg: '#fde8e8', text: '#9b1c1c', icon: 'fa-circle-xmark' },
-    info: { bg: '#e1effe', text: '#1e429f', icon: 'fa-circle-info' }
+  if (!show) return null;
+
+  const config = {
+    success: { 
+      bg: '#def7ec', 
+      text: '#03543f', 
+      border: '#bcf0da',
+      icon: <CheckCircle size={16} color="#059669" />
+    },
+    error: { 
+      bg: '#fde8e8', 
+      text: '#9b1c1c', 
+      border: '#fbd5d5',
+      icon: <XCircle size={16} color="#dc2626" />
+    },
+    info: { 
+      bg: '#e1effe', 
+      text: '#1e429f', 
+      border: '#c3ddfd',
+      icon: <Info size={16} color="#3b82f6" />
+    }
   };
 
-  const current = colors[type];
+  const current = config[type];
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: '1.5rem',
-      right: '1.5rem',
-      backgroundColor: current.bg,
-      color: current.text,
-      padding: '0.75rem 1rem',
-      borderRadius: '0.5rem',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.75rem',
-      zIndex: 2000,
-      fontSize: '0.8125rem',
-      fontWeight: 500,
-      minWidth: '200px',
-      border: `1px solid rgba(0,0,0,0.05)`
-    }}>
-      <i className={`fa-solid ${current.icon}`}></i>
-      <span style={{ flex: 1 }}>{message}</span>
+    <div 
+      className="notification-toast"
+      style={{
+        backgroundColor: current.bg,
+        color: current.text,
+        border: `1px solid ${current.border}`
+      }}
+    >
+      {current.icon}
+      <span>{message}</span>
       <button 
         onClick={onClose}
-        style={{ 
-          background: 'none', 
-          border: 'none', 
-          cursor: 'pointer', 
-          color: 'inherit', 
-          opacity: 0.5,
-          padding: '0.25rem'
+        style={{
+          marginLeft: '0.5rem',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          color: 'inherit',
+          display: 'flex',
+          alignItems: 'center',
+          opacity: 0.6
         }}
       >
-        <i className="fa-solid fa-xmark"></i>
+        <X size={14} />
       </button>
     </div>
   );

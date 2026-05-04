@@ -77,6 +77,7 @@ export class ConcertsService {
             await this.redis.getClient().del('all_concerts');
             return concert;
         } catch (error) {
+            console.error('Create concert error:', error);
             throw new InternalServerErrorException('Failed to create concert');
         }
     }
@@ -103,18 +104,32 @@ export class ConcertsService {
     }
 
     async remove(id: number): Promise<ResponseConcertDto> {
+        console.log(`Starting removal of concert ID: ${id}`);
         try {
-            const concert = await this.prisma.client.concert.delete({
-                where: { id },
-                select: this.concertSelect,
+            const concert = await this.prisma.client.$transaction(async (tx) => {
+                console.log(`Step 1: Deleting booking summary for concert ID: ${id}`);
+                await tx.concert_Booking_Summary.deleteMany({
+                    where: { concertId: id }
+                });
+
+                console.log(`Step 2: Soft deleting concert ID: ${id}`);
+                // Use update instead of delete for soft delete
+                return await tx.concert.update({
+                    where: { id },
+                    data: { deletedAt: new Date() },
+                    select: this.concertSelect,
+                });
             });
             
+            console.log(`Step 3: Cleaning up Redis cache for concert ID: ${id}`);
             await this.redis.getClient().del('all_concerts');
             await this.redis.getClient().del(`concert:${id}`);
             await this.redis.getClient().del(`concert_seats:${id}`);
-            
+
+            console.log(`Concert ID: ${id} removed successfully`);
             return concert;
         } catch (error) {
+            console.error('Detailed Remove concert error:', error);
             throw new InternalServerErrorException('Failed to remove concert');
         }
     }

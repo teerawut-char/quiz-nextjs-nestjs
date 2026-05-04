@@ -25,8 +25,16 @@ export const useAuthStore = create<AuthState>()(
             accessToken: null,
             user: null,
             setRole: (role) => set({ role }),
-            setSession: (accessToken, user) => set({ accessToken, user }),
-            clearSession: () => set({ accessToken: null, user: null }),
+            setSession: (accessToken, user) => {
+                localStorage.setItem("token", accessToken)
+                localStorage.setItem("user", JSON.stringify(user))
+                set({ accessToken, user })
+            },
+            clearSession: () => {
+                localStorage.removeItem("token")
+                localStorage.removeItem("user")
+                set({ accessToken: null, user: null })
+            },
         }),
         {
             name: "auth-store",

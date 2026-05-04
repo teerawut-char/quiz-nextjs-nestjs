@@ -1,19 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 
 :root {
-  --brand-blue: #0071ad;
-  --brand-blue-dark: #005a8a;
+  --brand-blue: #3b82f6;
+  --brand-blue-dark: #2563eb;
   --brand-light: #f8fafc;
-  --background: #f3f4f6;
-  --dashboard-bg: #f8f9fa;
+  --background: #f1f5f9;
+  --dashboard-bg: #f8fafc;
   --surface: #ffffff;
   --text-main: #1e293b;
   --text-muted: #64748b;
   --border: #e2e8f0;
   --border-dashed: #cbd5e1;
-  --success: #0e9f6e;
+  --success: #0d9488;
   --danger: #f05252;
-  --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --card-shadow: 0 1px 3px rgba(0,0,0,0.05);
   --transition: all 0.2s ease-in-out;
 }
 
