@@ -1,0 +1,29 @@
+.auth-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: white;
+}
+
+.auth-panel-left {
+  display: flex;
+  flex: 1;
+  background-color: var(--brand-blue);
+  color: white;
+  padding: 4rem;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.auth-panel-right {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background-color: white;
+}
+
+@media (max-width: 768px) {
+  .auth-container { flex-direction: column; }
+  .auth-panel-left { display: none; }
+}
