@@ -3,8 +3,12 @@
 import React from 'react';
 import Button from '@/components/Button';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export default function Home() {
+    const router = useRouter()
+    const setRole = useAuthStore((state) => state.setRole)
     return (
         <main style={{ backgroundColor: '#ffffff', minHeight: '100vh' }}>
             {/* Header */}
@@ -57,7 +61,7 @@ export default function Home() {
                         <div style={{ marginTop: 'auto' }}>
                             <Button
                                 style={{ width: '100%', padding: '1rem', fontSize: '1rem' }}
-                                onClick={() => window.location.href = '/login'}
+                                onClick={() => { setRole('user'); router.push('/login') }}
                             >
                                 Enter Workspace <span style={{ marginLeft: '0.5rem' }}>→</span>
                             </Button>
@@ -94,7 +98,7 @@ export default function Home() {
                             <Button
                                 color="white"
                                 style={{ width: '100%', padding: '1rem', fontSize: '1rem' }}
-                                onClick={() => window.location.href = '/login'}
+                                onClick={() => { setRole('admin'); router.push('/login') }}
                             >
                                 Enter Portal <span style={{ marginLeft: '0.5rem' }}>→</span>
                             </Button>
